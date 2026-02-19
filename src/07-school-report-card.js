@@ -41,5 +41,20 @@
  *   // => { name: "Priya", totalMarks: 63, percentage: 31.5, grade: "F", ... }
  */
 export function generateReportCard(student) {
-  // Your code here
+  if(!student || typeof student !== "object" || Array.isArray(student)){
+    return null
+  }
+
+  if (student.name.trim() === "" || typeof student.name !== "string") {
+    return null
+  }
+
+  const emptyMarks = [marks].some(value => {
+    typeof student[value] !== "object" || !student[value] || Array.isArray(student[value] || student[value] < 0 || student[value] > 0)
+  })
+
+  if (emptyMarks) {
+    return null
+  }
+
 }
