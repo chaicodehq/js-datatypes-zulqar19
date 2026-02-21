@@ -41,20 +41,72 @@
  *   // => { name: "Priya", totalMarks: 63, percentage: 31.5, grade: "F", ... }
  */
 export function generateReportCard(student) {
-  if(!student || typeof student !== "object" || Array.isArray(student)){
+  if(!student || typeof student !== "object" || Array.isArray(student) || typeof student.name !== "string" || student.name.trim() === "" || typeof student.marks !== "object" || Array.isArray(student.marks) || !student.marks){
     return null
   }
 
-  if (student.name.trim() === "" || typeof student.name !== "string") {
-    return null
-  }
+  const entries = Object.entries(student.marks);
+  if (entries.length === 0) return null;
 
-  const emptyMarks = [marks].some(value => {
-    typeof student[value] !== "object" || !student[value] || Array.isArray(student[value] || student[value] < 0 || student[value] > 0)
-  })
+  // 2. Ek hi REDUCE mein sab kuch calculate karo
+  const analysis = entries.reduce((acc, [subject, mark]) => {
+    // Validation check: marks 0-100 ke beech hone chahiye
+    if (typeof mark !== 'number' || mark < 0 || mark > 100) {
+      acc.isValid = false;
+    }
 
-  if (emptyMarks) {
-    return null
-  }
+    acc.totalMarks += mark;
 
+    // Highest Subject dhundho
+    if (mark > acc.maxMark) {
+      acc.maxMark = mark;
+      acc.highestSubject = subject;
+    }
+
+    // Lowest Subject dhundho
+    if (mark < acc.minMark) {
+      acc.minMark = mark;
+      acc.lowestSubject = subject;
+    }
+
+    // Passed/Failed list mein dalo
+    if (mark >= 40) acc.passedSubjects.push(subject);
+    else acc.failedSubjects.push(subject);
+
+    return acc;
+  }, {
+    totalMarks: 0,
+    maxMark: -1,
+    minMark: 101,
+    highestSubject: "",
+    lowestSubject: "",
+    passedSubjects: [],
+    failedSubjects: [],
+    isValid: true
+  });
+
+  if (!analysis.isValid) return null;
+
+  // 3. Final Calculations
+  const subjectCount = entries.length;
+  const percentage = parseFloat(((analysis.totalMarks / (subjectCount * 100)) * 100).toFixed(2));
+
+  let grade = "F";
+  if (percentage >= 90) grade = "A+";
+  else if (percentage >= 80) grade = "A";
+  else if (percentage >= 70) grade = "B";
+  else if (percentage >= 60) grade = "C";
+  else if (percentage >= 40) grade = "D";
+
+  return {
+    name: student.name,
+    totalMarks: analysis.totalMarks,
+    percentage,
+    grade,
+    highestSubject: analysis.highestSubject,
+    lowestSubject: analysis.lowestSubject,
+    passedSubjects: analysis.passedSubjects,
+    failedSubjects: analysis.failedSubjects,
+    subjectCount
+  };
 }
